@@ -997,13 +997,14 @@ class App:
         runtime.spawn(self._user_keys_loop, name="user-keys")
         # Plain file path: a ?v= query made the web view fall back to a non-UTF-8
         # reading of the page, and the text came out mangled.
-        # The minimum is what the header needs to stay on its two rows. Below
-        # it the layout would have to rearrange itself, and a control that
-        # moves while the window is dragged is a control you have to find
-        # again. Above it, everything keeps its place.
+        # It opens at its minimum, which is what the header needs to keep its
+        # two rows. Below that the layout would have to rearrange itself, and a
+        # control that moves while the window is dragged is a control you have
+        # to find again. Above it, everything keeps its place and the grid gets
+        # the room.
         self.window = webview.create_window(
             f"{APP_NAME} {__version__}", str(PAGE),
-            js_api=self, width=1180, height=820, min_size=(1000, 620),
+            js_api=self, width=1000, height=620, min_size=(1000, 620),
         )
         self.tray = Tray(lines=self.status_lines,
                          follow=lambda: self.cfg.get("follow", True),

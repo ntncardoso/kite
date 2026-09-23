@@ -73,7 +73,12 @@
      rather than by moving anything: a status line and the health readout. */
   .said, .health { flex:0 1 auto; min-width:0;
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  #iface { flex:0 1 260px; min-width:110px; }
+  /* The interface list is the widest thing in the row and the one that can
+     lose a little without becoming useless, so it is what narrows when the
+     window is at its smallest. Its group has to be allowed to shrink too, or
+     the list inside it never gets the chance. */
+  #bar-conn > .row > .grp-ctl { flex:0 1 auto; min-width:0; }
+  #iface { flex:0 1 260px; min-width:96px; }
   #bar-conn { top:env(safe-area-inset-top,0px); border-bottom:1px solid var(--line); z-index:62; }
   .tabs { position:sticky; top:calc(env(safe-area-inset-top,0px) + var(--connh, 46px));
           z-index:61; display:flex; gap:2px; padding:0 14px; background:var(--ground);
@@ -184,9 +189,14 @@
      you, not where you are — a moon while the light theme is on, a sun while
      the dark one is, which is what the tooltip says too. */
   button.ghost { background:none; border-color:transparent; color:var(--muted);
-    font-size:15px; line-height:1; padding:4px 7px; }
+    padding:4px 6px; }
   button.ghost:hover:not(:disabled) { color:var(--accent); border-color:transparent; }
-  button.ghost .swap > span { text-align:center; }
+  /* Drawn, not typed. The sun and moon characters are not in the fonts this
+     page asks for, so each platform substituted its own — clipped on macOS and
+     missing altogether on Windows. An inline icon renders the same everywhere
+     and follows the text colour. */
+  button.ghost .swap > span { display:grid; place-items:center; }
+  button.ghost svg { display:block; fill:none; stroke:currentColor; stroke-width:1.5; }
 
   .sep { width:1px; align-self:stretch; background:var(--line); margin-inline:2px; }
 

@@ -58,14 +58,6 @@
     </span>
     <button type="button" id="btn-adv" disabled aria-expanded="false" title="ProLink port and the name SuperRack sees">Advanced</button>
     <div class="spacer"></div>
-    <button type="button" id="theme" class="icon ghost" aria-pressed="false"
-            aria-label="Switch between the light and dark theme"
-            title="Dark theme — for a dark room">
-      <span class="swap">
-        <span class="on" aria-hidden="true">☀</span>
-        <span class="off" aria-hidden="true">☾</span>
-      </span>
-    </button>
    </div>
 
    <div class="row status">
@@ -75,6 +67,22 @@
       <span class="health" id="health" hidden title="SuperRack state, read only"></span></span>
     <div class="spacer"></div>
     <span class="said" id="said-conn"></span>
+    <button type="button" id="theme" class="icon ghost" aria-pressed="false"
+            aria-label="Switch between the light and dark theme"
+            title="Dark theme — for a dark room">
+      <span class="swap">
+        <span class="on" aria-hidden="true"><svg viewBox="0 0 16 16" width="16" height="16">
+          <circle cx="8" cy="8" r="3.1"/>
+          <g stroke-linecap="round">
+            <path d="M8 1v1.7M8 13.3V15M1 8h1.7M13.3 8H15"/>
+            <path d="M3.1 3.1l1.2 1.2M11.7 11.7l1.2 1.2M3.1 12.9l1.2-1.2M11.7 4.3l1.2-1.2"/>
+          </g>
+        </svg></span>
+        <span class="off" aria-hidden="true"><svg viewBox="0 0 16 16" width="16" height="16">
+          <path d="M13.2 10.3A5.6 5.6 0 0 1 6 3a5.8 5.8 0 1 0 7.2 7.3Z" stroke-linejoin="round"/>
+        </svg></span>
+      </span>
+    </button>
    </div>
 
     <div class="adv" id="adv" hidden>
