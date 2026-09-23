@@ -53,7 +53,9 @@ if sys.platform == "darwin":
         coll,
         name=f"{APP_NAME}.app",
         icon=str(HERE / "icon.icns"),
-        bundle_identifier="com.antoniocardoso.kite",
+        # Reverse-DNS of where the project lives, not of whoever built it:
+        # a machine account name has no business inside a shipped bundle.
+        bundle_identifier="com.github.ntncardoso.kite",
         version=__version__,
         info_plist={
             "CFBundleName": APP_NAME,

@@ -13,7 +13,7 @@ def prepared(bridge):
     """A bridge with a show loaded and a machine to describe."""
     bridge.cfg.update({
         "iface": "en0", "wingHost": "192.0.2.10", "consoleName": "Desk 1",
-        "prolinkPort": 57999, "follow": True, "session": "Gala Vandenberg",
+        "prolinkPort": 57999, "follow": True, "session": "Saturday Night Show",
         "map": {"ch/1": 4, "ch/2": 9}, "anchors": {"ch/1": "VOX"},
         "names": {"ch/1": "Lead Vox"}, "rackNames": {"4": "VOX"},
         "buttons": {"uk1": "U1/1/bu"}, "consoleUidFallback": "deadbeef" * 4,
@@ -35,7 +35,7 @@ def test_the_report_carries_what_a_problem_needs(bridge, tmp_path):
 
 def test_the_report_never_carries_the_show(bridge, tmp_path):
     text = diagnostics.report(prepared(bridge))
-    for secret in ("Lead Vox", "Gala Vandenberg", "VOX", "deadbeef"):
+    for secret in ("Lead Vox", "Saturday Night Show", "VOX", "deadbeef"):
         assert secret not in text, f"{secret} must not be in a diagnostics report"
     assert "map: 2 entries" in text          # counted instead
     assert "a session is open: yes" in text
