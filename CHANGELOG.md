@@ -5,6 +5,19 @@ follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.2] — 2026-09-23
+
+One fix, and it is the reason to replace 0.1.1 on Windows.
+
+### Fixed
+- Closing the window hung the app on Windows. Windows recorded it as
+  AppHangB1 and ended the process; nothing appeared in the app's own log,
+  because the freeze happens before the line is written. The window is now
+  hidden from a thread that is not the one drawing it: the toolkit runs a
+  closing handler inline on the drawing thread, and hiding from there hands
+  the work back to a thread that is busy running the handler. Verified on
+  Windows: close, still running, and the window comes back when asked.
+
 ## [0.1.1] — 2026-09-23
 
 Interface and packaging. Nothing here changes what the bridge does.

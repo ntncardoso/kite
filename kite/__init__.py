@@ -7,7 +7,7 @@ writes audio routing.
 One name, one version, in one place: everything else imports them from here.
 """
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 
 APP_NAME = "Kite"
 

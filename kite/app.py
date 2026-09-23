@@ -973,12 +973,25 @@ class App:
         """
         if self._quitting:
             return True
+        # The hide has to happen AFTER this handler returns. pywebview runs a
+        # closing handler inline on the thread that draws the window, because
+        # it needs the answer — and on Windows window.hide() marshals its work
+        # back onto that same thread, which is busy running this. The app
+        # stopped answering and Windows recorded it as hung: AppHangB1 for
+        # Kite.exe, with nothing in our own log because the freeze comes first
+        # (seen 2026-09-23). macOS survives the same call only because its hide
+        # is posted rather than waited on.
+        runtime.spawn(self._hide_window, name="hide-window")
+        self._log("window closed — the bridge is still running (tray → Open window)")
+        return False
+
+    def _hide_window(self):
+        """Hide the window from a thread that is not the one drawing it."""
+        time.sleep(0.05)          # let the close be cancelled first
         try:
             self.window.hide()
         except Exception:
             pass
-        self._log("window closed — the bridge is still running (tray → Open window)")
-        return False
 
     def run(self):
         # Imported here, not at the top: everything above this method is the
