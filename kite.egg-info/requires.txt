@@ -1,9 +1,0 @@
-pywebview<7,>=5
-pystray<0.20,>=0.19
-pillow<13,>=10
-psutil<8,>=5.9
-python-rtmidi<2,>=1.5
-
-[dev]
-pytest>=8
-ruff>=0.6
