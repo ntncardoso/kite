@@ -58,6 +58,7 @@ class MidiLink:
             else:
                 self.error = (f'no MIDI port named "{self.name}" — create one '
                               f'with loopMIDI and restart the app')
+                self.log(self.error)      # and in the log, not only on screen
                 return False
             self.out = out
             return True
