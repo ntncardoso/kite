@@ -85,10 +85,18 @@ def test_writing_it_never_raises_on_a_half_built_app(bridge, tmp_path, monkeypat
         assert "could not be read" in z.read("report.txt").decode()
 
 
-def test_the_desktop_is_asked_for_rather_than_assumed(tmp_path, monkeypatch):
-    """A machine whose Desktop is elsewhere — redirected, or shared from a
-    host — must not get a new empty folder nobody looks in."""
+def test_the_desktop_is_somewhere_that_exists():
+    """Whatever the machine says its Desktop is, a file can be written there.
+    On Windows that is a known folder, and it is routinely not ~/Desktop:
+    redirected into OneDrive, or shared from a host."""
+    assert paths.desktop_dir().is_dir()
+
+
+def test_without_a_desktop_the_home_is_used(tmp_path, monkeypatch):
+    """Never invent a Desktop: a folder nobody looks in is worse than the home
+    directory, which they will find."""
+    monkeypatch.setattr(paths.os, "name", "posix")      # the branch that guesses
     monkeypatch.setattr(paths.Path, "home", classmethod(lambda cls: tmp_path))
-    assert paths.desktop_dir() == tmp_path          # no Desktop here: use home
+    assert paths.desktop_dir() == tmp_path
     (tmp_path / "Desktop").mkdir()
     assert paths.desktop_dir() == tmp_path / "Desktop"
