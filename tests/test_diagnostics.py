@@ -83,3 +83,12 @@ def test_writing_it_never_raises_on_a_half_built_app(bridge, tmp_path, monkeypat
     assert out.exists()
     with zipfile.ZipFile(out) as z:
         assert "could not be read" in z.read("report.txt").decode()
+
+
+def test_the_desktop_is_asked_for_rather_than_assumed(tmp_path, monkeypatch):
+    """A machine whose Desktop is elsewhere — redirected, or shared from a
+    host — must not get a new empty folder nobody looks in."""
+    monkeypatch.setattr(paths.Path, "home", classmethod(lambda cls: tmp_path))
+    assert paths.desktop_dir() == tmp_path          # no Desktop here: use home
+    (tmp_path / "Desktop").mkdir()
+    assert paths.desktop_dir() == tmp_path / "Desktop"

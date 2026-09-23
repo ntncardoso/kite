@@ -415,7 +415,7 @@ class App:
         """Write the host's MIDI map file, so its 16 USER KEYS are mapped in one
         go instead of learnt one by one."""
         cmds = [(f"User Key #{n}", n) for n in range(1, 17)] + self.MIDI_NAV
-        out = Path(out_dir or (Path.home() / "Desktop")) / f"{APP_NAME}.mrrc"
+        out = Path(out_dir or paths.desktop_dir()) / f"{APP_NAME}.mrrc"
         try:
             out.write_text(userkeys.build_mrrc(cmds, MIDI_CHANNEL, self.SR_VERSION))
         except OSError as e:

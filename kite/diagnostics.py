@@ -105,7 +105,7 @@ def report(app):
 def bundle(app, out_dir=None):
     """Write the report and the log files into one zip. Returns its path."""
     stamp = datetime.now().strftime("%Y-%m-%d %H%M")
-    out = Path(out_dir or (Path.home() / "Desktop")) / f"{APP_NAME} diagnostics {stamp}.zip"
+    out = Path(out_dir or paths.desktop_dir()) / f"{APP_NAME} diagnostics {stamp}.zip"
     out.parent.mkdir(parents=True, exist_ok=True)
 
     log = paths.config_dir() / runtime.LOG_NAME

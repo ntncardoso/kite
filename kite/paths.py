@@ -86,6 +86,32 @@ def save_config(cfg):
         return False
 
 
+def desktop_dir():
+    """Where to put a file the person is meant to find.
+
+    Not `~/Desktop`. On Windows the Desktop is a known folder that is routinely
+    somewhere else: redirected into OneDrive on a managed machine, or — on a
+    virtual machine sharing the host's profile — on the host altogether
+    (C:\\Mac\\Home\\Desktop, seen 2026-09-23). Writing to `~/Desktop` there
+    creates a folder nobody ever looks in, and the export appears to have done
+    nothing. Ask the system where it is, and fall back to the home directory
+    rather than inventing a Desktop.
+    """
+    if os.name == "nt":
+        try:
+            import winreg
+            with winreg.OpenKey(
+                    winreg.HKEY_CURRENT_USER,
+                    r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders") as k:
+                d = Path(winreg.QueryValueEx(k, "Desktop")[0])
+                if d.is_dir():
+                    return d
+        except OSError:
+            pass
+    d = Path.home() / "Desktop"
+    return d if d.is_dir() else Path.home()
+
+
 def machine_id():
     """A stable per-installation id from the OS, or None.
 
