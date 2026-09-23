@@ -78,6 +78,12 @@ Create it **once** and leave it there:
 If there is none, macOS gets a temporary port that dies with the app, and the
 host stops finding it on every restart. The app says so when that happens.
 
+### First run on Windows
+
+Windows Firewall asks whether to allow the app on private and public networks.
+It has to be allowed on the network the console and the rack host are on, or
+the host will never find the console: it is the host that opens the connection.
+
 ### Console and host
 
 1. In the app, pick the network interface and connect to the console by IP

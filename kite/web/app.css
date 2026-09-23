@@ -56,8 +56,24 @@
   .mono { font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-variant-numeric:tabular-nums; }
 
   /* ---------- sticky bars: connection first, then patch controls ---------- */
+  /* Bars never reflow. A header that rearranges itself as the window is
+     dragged is a header you have to re-read every time, so nothing here wraps:
+     the connection bar is two fixed rows — controls, then read-only state —
+     and stays two rows at every window size. What gives, when there is not
+     enough room, is the text of a status message, not the layout. */
   .bar { position:sticky; z-index:60; background:var(--ground);
-    display:flex; flex-wrap:wrap; align-items:center; gap:8px 14px; padding-block:9px; }
+    display:flex; flex-wrap:nowrap; align-items:center; gap:8px 14px; padding-block:9px; }
+  #bar-conn { flex-direction:column; align-items:stretch; gap:6px; }
+  #bar-conn > .row { display:flex; flex-wrap:nowrap; align-items:center; gap:8px 14px;
+    min-width:0; }
+  #bar-conn > .row.status { gap:8px 12px; }
+  .bar > *, #bar-conn > .row > * { flex:0 0 auto; }
+  .bar .spacer, #bar-conn > .row .spacer { flex:1 1 auto; }
+  /* The two that may give way, and they give way by losing their own tail
+     rather than by moving anything: a status line and the health readout. */
+  .said, .health { flex:0 1 auto; min-width:0;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  #iface { flex:0 1 260px; min-width:110px; }
   #bar-conn { top:env(safe-area-inset-top,0px); border-bottom:1px solid var(--line); z-index:62; }
   .tabs { position:sticky; top:calc(env(safe-area-inset-top,0px) + var(--connh, 46px));
           z-index:61; display:flex; gap:2px; padding:0 14px; background:var(--ground);
@@ -93,7 +109,7 @@
     background:var(--surface); color:var(--ink); border:1px solid var(--line);
     border-radius:2px; padding:5px 6px; }
   #iface { max-width:260px; }
-  .adv { flex:1 1 100%; display:flex; flex-wrap:wrap; align-items:center; gap:8px 14px;
+  .adv { display:flex; flex-wrap:wrap; align-items:center; gap:8px 14px;
     padding-top:8px; border-top:1px dashed var(--line); }
   .adv[hidden] { display:none; }
   #winghost { width:130px; }

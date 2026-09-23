@@ -39,6 +39,7 @@
 
 <div class="wrap">
   <div class="bar" id="bar-conn">
+   <div class="row">
     <button type="button" id="follow" class="engine" aria-pressed="true"
             title="When on, selecting a strip on the WING opens its mapped rack in SuperRack. This is what the bridge is for.">
       <i></i><span class="swap"><span class="on">Following selection</span><span class="off">Held — rack stays put</span></span>
@@ -56,12 +57,7 @@
       <div class="found" id="found" hidden></div>
     </span>
     <button type="button" id="btn-adv" disabled aria-expanded="false" title="ProLink port and the name SuperRack sees">Advanced</button>
-    <span class="live" id="live-waves"><i></i>SuperRack</span>
-    <span class="live" id="live-wing"><i></i>WING</span>
-    <span class="grp-ctl" id="srstate"><span class="label" id="rackinfo">64 racks</span>
-      <span class="health" id="health" hidden title="SuperRack state, read only"></span></span>
     <div class="spacer"></div>
-    <span class="said" id="said-conn"></span>
     <button type="button" id="theme" class="icon ghost" aria-pressed="false"
             aria-label="Switch between the light and dark theme"
             title="Dark theme — for a dark room">
@@ -70,6 +66,17 @@
         <span class="off" aria-hidden="true">☾</span>
       </span>
     </button>
+   </div>
+
+   <div class="row status">
+    <span class="live" id="live-waves"><i></i>SuperRack</span>
+    <span class="live" id="live-wing"><i></i>WING</span>
+    <span class="grp-ctl" id="srstate"><span class="label" id="rackinfo">64 racks</span>
+      <span class="health" id="health" hidden title="SuperRack state, read only"></span></span>
+    <div class="spacer"></div>
+    <span class="said" id="said-conn"></span>
+   </div>
+
     <div class="adv" id="adv" hidden>
       <span class="grp-ctl">
         <span class="label">ProLink port</span>
