@@ -15,6 +15,16 @@ from . import paths
 SESSION_KEYS = ("map", "anchors", "names", "rackNames", "rackCount",
                 "buttons", "buttonsOwned", "buttonsPending", "buttonsToFree")
 
+# The shape of a session file. It is written into every file so that a future
+# version can tell what it is reading, and so that a file written by a NEWER
+# version is refused out loud instead of loading half of itself — a patch sheet
+# that is quietly wrong is worse than one that will not open.
+#
+# 1 — the original shape: the keys above, at the top level.
+#     Files from before this field exists are that shape, so a file with no
+#     version is read as 1 rather than rejected.
+SESSION_FORMAT = 1
+
 
 def session_path(name):
     """Sessions are files named after themselves; keep the name file-safe."""
@@ -74,7 +84,8 @@ class SessionStore:
             return {"ok": False, "msg": "no session open — use Save as"}
         try:
             paths.SESSIONS.mkdir(parents=True, exist_ok=True)
-            path.write_text(json.dumps(self.data(), indent=2, ensure_ascii=False))
+            body = {"version": SESSION_FORMAT, **self.data()}
+            path.write_text(json.dumps(body, indent=2, ensure_ascii=False))
         except OSError as e:
             return {"ok": False, "msg": f"could not save ({e})"}
         self._log(f"session saved: {path.stem}")
@@ -117,6 +128,15 @@ class SessionStore:
             data = json.loads(path.read_text())
         except (OSError, ValueError) as e:
             return {"ok": False, "msg": f"could not read it ({e})"}
+        version = data.get("version", 1) if isinstance(data, dict) else None
+        if not isinstance(version, int):
+            return {"ok": False, "msg": "that file is not a session"}
+        if version > SESSION_FORMAT:
+            # Nothing is loaded: what is on screen is left exactly as it was.
+            return {"ok": False,
+                    "msg": f'"{path.stem}" was saved by a newer version of the app '
+                           f"(format {version}; this one reads {SESSION_FORMAT}). "
+                           f"Update, or save it again from the version that wrote it."}
         for k in SESSION_KEYS:
             if k in data:
                 self.cfg[k] = data[k]

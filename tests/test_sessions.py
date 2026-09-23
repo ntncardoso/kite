@@ -69,3 +69,31 @@ def test_rename_moves_the_file(bridge):
     assert (paths.SESSIONS / "B.json").exists()
     assert not (paths.SESSIONS / "A.json").exists()
     assert bridge.cfg["session"] == "B"
+
+
+def test_a_saved_session_says_what_shape_it_is(bridge):
+    bridge.cfg["map"] = {"ch/1": 3}
+    bridge.save_session_as("Shape")
+    saved = json.loads((paths.SESSIONS / "Shape.json").read_text())
+    assert saved["version"] == 1
+    assert saved["map"] == {"ch/1": 3}
+
+
+def test_a_file_from_before_versions_still_loads(bridge):
+    """Sessions written by earlier builds carry no version and are that shape."""
+    paths.SESSIONS.mkdir(parents=True, exist_ok=True)
+    (paths.SESSIONS / "Old.json").write_text(json.dumps({"map": {"ch/2": 5}, "anchors": {}}))
+    assert bridge.load_session("Old")["ok"] is True
+    assert bridge.cfg["map"] == {"ch/2": 5}
+
+
+def test_a_file_from_a_newer_version_is_refused_and_changes_nothing(bridge):
+    """Half-loading somebody's patch sheet is worse than not opening it."""
+    bridge.cfg["map"] = {"ch/1": 1}
+    paths.SESSIONS.mkdir(parents=True, exist_ok=True)
+    (paths.SESSIONS / "Future.json").write_text(
+        json.dumps({"version": 99, "map": {"ch/9": 9}}))
+    r = bridge.load_session("Future")
+    assert r["ok"] is False
+    assert "newer version" in r["msg"]
+    assert bridge.cfg["map"] == {"ch/1": 1}          # untouched

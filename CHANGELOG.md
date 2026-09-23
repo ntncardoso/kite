@@ -5,6 +5,37 @@ follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.1] — 2026-09-23
+
+Interface and packaging. Nothing here changes what the bridge does.
+
+### Added
+- A light/dark switch at the right of the header. The app opens light on every
+  machine now instead of following the system, so it looks the same wherever it
+  is opened; the choice is remembered per machine.
+- Session files carry the format they were written in, and a file from a newer
+  version is refused out loud rather than loaded half way.
+- A whole protocol session is tested over a real socket against a stand-in for
+  the rack host, on every platform — the part that had only ever run on one
+  machine.
+
+### Changed
+- The header no longer rearranges itself as the window is resized: two fixed
+  rows at every size, and text gives way before layout does.
+- The window opens at its minimum size, 1000x620.
+- The zoom buttons and the percentage are gone; the wheel with ctrl (or the
+  trackpad) does it, and zoom starts at 100% every launch instead of being
+  remembered.
+
+### Fixed
+- Closing the window froze the app: the close handler pushed a log line to the
+  page and waited for the page, which waits on the same thread. Page events now
+  go through a queue drained by one thread.
+- The theme icon was a text character the page's fonts do not carry — clipped
+  on macOS, missing on Windows. It is drawn now.
+- A missing MIDI port on Windows said so on screen but not in the log.
+- The scan results landed on top of the buttons beside them.
+
 ## [0.1.0] — 2026-09-23
 
 The first release with a name, a version and tests of its own. It gathers the
