@@ -363,6 +363,24 @@
     }, { passive: false });
   })();
 
+  /* ---------------- theme ---------------- */
+  /* Light by default, on every machine and whatever the system is set to: the
+     app looks the same wherever it is opened. The choice is remembered here
+     rather than in the config, because it belongs to this screen and this
+     room, not to the show. */
+  (function theme(){
+    const b = document.getElementById("theme");
+    const apply = dark => {
+      document.documentElement.dataset.theme = dark ? "dark" : "light";
+      b.setAttribute("aria-pressed", String(dark));
+      b.title = dark ? "Light theme — for a lit room" : "Dark theme — for a dark room";
+      try { localStorage.setItem("kite-theme", dark ? "dark" : "light"); } catch (e) {}
+    };
+    apply(document.documentElement.dataset.theme === "dark");
+    b.addEventListener("click", () =>
+      apply(document.documentElement.dataset.theme !== "dark"));
+  })();
+
   /* ---------------- lock ---------------- */
   function applyLock(){
     const b = document.getElementById("btn-lock");

@@ -4,6 +4,14 @@
 <title>Kite</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="app.css">
+<script>
+  // Ahead of the stylesheet doing anything: light unless this machine
+  // was told otherwise. The app does not follow the system setting —
+  // it looks the same on every machine until someone says otherwise.
+  try { document.documentElement.dataset.theme =
+          localStorage.getItem("kite-theme") === "dark" ? "dark" : "light"; }
+  catch (e) { document.documentElement.dataset.theme = "light"; }
+</script>
 
 <div class="modal" id="ask2" hidden>
     <div class="card" role="dialog" aria-modal="true" aria-labelledby="ask2-what">
@@ -54,6 +62,14 @@
       <span class="health" id="health" hidden title="SuperRack state, read only"></span></span>
     <div class="spacer"></div>
     <span class="said" id="said-conn"></span>
+    <button type="button" id="theme" class="icon ghost" aria-pressed="false"
+            aria-label="Switch between the light and dark theme"
+            title="Dark theme — for a dark room">
+      <span class="swap">
+        <span class="on" aria-hidden="true">☀</span>
+        <span class="off" aria-hidden="true">☾</span>
+      </span>
+    </button>
     <div class="adv" id="adv" hidden>
       <span class="grp-ctl">
         <span class="label">ProLink port</span>
