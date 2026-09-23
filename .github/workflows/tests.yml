@@ -1,0 +1,49 @@
+# The suite runs on both platforms this app ships to, because the differences
+# that matter here are platform ones: where the config lives, how a path is
+# spelt, which MIDI port exists. A green run on macOS alone would prove half.
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+        python: ["3.11", "3.12", "3.13"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      # The app's own dependencies are not needed to test it: the suite never
+      # opens a socket, a window or a MIDI port. Keeping them out means a
+      # failure here is this code's fault, not a wheel's.
+      - run: python -m pip install --upgrade pip pytest ruff
+      - run: python -m pytest -q
+      - run: python -m ruff check .
+
+  # The suite deliberately runs without the app's dependencies, so this job is
+  # what notices when one of them stops installing or stops importing — the
+  # failure a user would meet on a fresh machine, the evening before a show.
+  install:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -e .
+      - name: import the application as a packaged run would
+        run: python -c "import webview, pystray, rtmidi, psutil, PIL; from kite.app import App, main; print('ok')"

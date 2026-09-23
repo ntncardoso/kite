@@ -1,0 +1,51 @@
+name: Something went wrong
+description: A link that did not open, a device that did not answer, a window that misbehaved
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Kite talks to two pieces of equipment over a network, so the versions
+        and the log are usually the whole answer. Please do not paste a
+        session file: it is your show.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what you expected instead
+      placeholder: Selecting channel 12 opened rack 3 rather than the rack it is linked to.
+    validations:
+      required: true
+  - type: input
+    id: kite
+    attributes:
+      label: Kite version
+      description: Help tab, bottom — or the first line of the log.
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options: [macOS, Windows]
+    validations:
+      required: true
+  - type: input
+    id: console
+    attributes:
+      label: Console and firmware
+      placeholder: WING Compact, firmware 3.1
+  - type: input
+    id: host
+    attributes:
+      label: Rack host and version
+      placeholder: SuperRack Performer 15.15.12.13
+  - type: textarea
+    id: log
+    attributes:
+      label: The relevant lines from the log
+      description: |
+        macOS — ~/Library/Application Support/Kite/kite.log
+        Windows — %APPDATA%\Kite\kite.log
+        The minute around the problem is enough. Remove anything you would
+        rather not publish; addresses and rack names are yours.
+      render: text

@@ -1,0 +1,18 @@
+.venv/
+__pycache__/
+*.pyc
+app.log
+
+session_evidence.log
+.pytest_cache/
+waves_osc_paths.txt
+
+# build output: releases carry the binaries, the repository carries the source
+build/
+dist/
+release/
+*.spec.bak
+
+# Internal research notes. What was learned from them lives in the code's
+# comments and in the README; the specification itself is not published.
+PROTOCOLO.md

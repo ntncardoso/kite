@@ -1,0 +1,229 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kite</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="app.css">
+
+<div class="modal" id="ask2" hidden>
+    <div class="card" role="dialog" aria-modal="true" aria-labelledby="ask2-what">
+      <h3 id="ask2-what">Unsaved changes</h3>
+      <p class="hint" id="ask2-hint"></p>
+      <div class="row">
+        <button type="button" class="primary" id="ask2-save">Save</button>
+        <button type="button" id="ask2-discard">Discard</button>
+        <button type="button" id="ask2-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+<div class="modal" id="ask" hidden>
+    <div class="card" role="dialog" aria-modal="true" aria-labelledby="ask-what">
+      <h3 id="ask-what">Session name</h3>
+      <input type="text" id="ask-name" autocomplete="off" aria-label="Session name">
+      <p class="hint" id="ask-hint"></p>
+      <div class="row">
+        <button type="button" class="primary" id="ask-ok">OK</button>
+        <button type="button" id="ask-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+<div class="wrap">
+  <div class="bar" id="bar-conn">
+    <button type="button" id="follow" class="engine" aria-pressed="true"
+            title="When on, selecting a strip on the WING opens its mapped rack in SuperRack. This is what the bridge is for.">
+      <i></i><span class="swap"><span class="on">Following selection</span><span class="off">Held — rack stays put</span></span>
+    </button>
+    <span class="sep"></span>
+    <span class="grp-ctl">
+      <span class="label">Interface</span>
+      <select id="iface" disabled aria-label="Network interface"><option value="">—</option></select>
+    </span>
+    <span class="grp-ctl anchor">
+      <span class="label">WING</span>
+      <input type="text" id="winghost" aria-label="WING address" autocomplete="off">
+      <button type="button" id="btn-scan" disabled>Scan</button>
+      <button type="button" id="btn-connect" disabled aria-pressed="false"><span class="swap"><span class="on">Disconnect</span><span class="off">Connect</span></span></button>
+      <div class="found" id="found" hidden></div>
+    </span>
+    <button type="button" id="btn-adv" disabled aria-expanded="false" title="ProLink port and the name SuperRack sees">Advanced</button>
+    <span class="live" id="live-waves"><i></i>SuperRack</span>
+    <span class="live" id="live-wing"><i></i>WING</span>
+    <span class="grp-ctl" id="srstate"><span class="label" id="rackinfo">64 racks</span>
+      <span class="health" id="health" hidden title="SuperRack state, read only"></span></span>
+    <div class="spacer"></div>
+    <span class="said" id="said-conn"></span>
+    <div class="adv" id="adv" hidden>
+      <span class="grp-ctl">
+        <span class="label">ProLink port</span>
+        <input type="text" id="pl-port" inputmode="numeric" aria-label="ProLink TCP port" style="width:72px">
+      </span>
+      <span class="grp-ctl">
+        <span class="label">Name in SuperRack</span>
+        <input type="text" id="pl-name" maxlength="31" aria-label="Console name shown in SuperRack" style="width:120px">
+      </span>
+      <button type="button" id="btn-adv-apply">Apply</button>
+      <span class="hint" style="margin:0">Changing these drops the SuperRack session for a moment; it should reconnect by itself — if not, tick Assign. Discovery (40123) and WING OSC (2223) are fixed by the devices.</span>
+    </div>
+  </div>
+
+  <nav class="tabs" id="tabs" role="tablist">
+    <button type="button" role="tab" data-tab="patch" aria-selected="true">Patch</button>
+    <button type="button" role="tab" data-tab="names" aria-selected="false">Names</button>
+    <button type="button" role="tab" data-tab="keys" aria-selected="false">USER keys</button>
+    <button type="button" role="tab" data-tab="sessions" aria-selected="false">Sessions</button>
+    <button type="button" role="tab" data-tab="activity" aria-selected="false">Activity</button>
+    <button type="button" role="tab" data-tab="notes" aria-selected="false">Help</button>
+  </nav>
+
+  <section class="tab" id="tab-patch">
+  <div class="bar" id="bar-patch">
+    <div class="stat"><span class="n mono" id="stat-mapped">0</span><span>links</span></div>
+    <div class="stat" id="stat-conf-wrap"><span class="n mono" id="stat-conf">0</span><span>conflicts</span></div>
+    <div class="stat bad" id="stat-moved-wrap" hidden title="Links whose rack changed name in SuperRack — probably moved"><span class="n mono" id="stat-moved">0</span><span>moved</span></div>
+    <button type="button" id="btn-relink" hidden title="Point each moved link back at the rack that carries its original name">Relink by name</button>
+    <button type="button" id="btn-accept" hidden title="Keep the links on their current racks and take the new names">Keep as is</button>
+    <div class="spacer"></div>
+    <button type="button" class="tog" id="btn-lock" aria-pressed="true"><span class="swap"><span class="on">Locked</span><span class="off">Unlocked</span></span></button>
+    <button type="button" id="btn-auto" disabled>Auto-match</button>
+    <button type="button" id="btn-clear" disabled>Clear</button>
+    <span class="said" id="said"></span>
+  </div>
+
+  <div class="gridwrap locked" id="gridwrap">
+    <div class="gridinner" id="gridinner">
+      <div class="cross h" id="cross-h" hidden></div>
+      <div class="cross v" id="cross-v" hidden></div>
+      <table class="mx" id="mx"></table>
+    </div>
+  </div>
+
+  </section>
+
+  <section class="tab" id="tab-names" hidden>
+  <section class="panel" id="p-names">
+    <h2 id="h-names">Names</h2>
+    <div class="body">
+      <div class="cols">
+        <div>
+          <h3 class="sm">WING strips</h3>
+          <div class="namelist" id="nl-strips"></div>
+          <div class="row">
+            <button type="button" id="pull-wing" disabled>Pull from WING</button>
+            <button type="button" id="push-wing" disabled>Push to WING</button>
+          </div>
+        </div>
+        <div>
+          <h3 class="sm">SuperRack racks</h3>
+          <div class="namelist" id="nl-racks"></div>
+          <div class="row">
+            <button type="button" id="pull-waves" disabled>Pull from SuperRack</button>
+            <button type="button" id="push-waves" disabled>Push to SuperRack</button>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <button type="button" id="copy-s2r" title="For every linked strip, give its rack the strip's name">Copy strip names &rarr; racks</button>
+        <button type="button" id="copy-r2s" title="For every linked strip, give the strip its rack's name">Copy rack names &rarr; strips</button>
+        <span class="said" id="said-names"></span>
+      </div>
+      <p class="hint" id="hint-names" style="margin-top:10px">Copying follows the patch: only strips with a link are touched, and it
+        changes this sheet only. <b>Push</b> is what writes to the console or to SuperRack.</p>
+    </div>
+  </section>
+
+  </section>
+
+  <section class="tab" id="tab-keys" hidden>
+  <section class="panel" id="p-btns">
+    <h2 id="h-btns">WING buttons</h2>
+    <div class="body">
+      <p class="said" id="said-btns"></p>
+
+      <p class="hint">One row per USER button on the console. Pick what it does: nothing, SuperRack
+        navigation, or one of SuperRack's 16 USER KEYS. The app sets the button up on the console
+        (MIDI CC push) and writes the name you see on its screen.</p>
+      <details class="steps">
+        <summary>USER KEYS: one-time setup in SuperRack</summary>
+        <ol>
+          <li>On this Mac, once: Audio MIDI Setup &rarr; Window &rarr; Show MIDI Studio &rarr; <b>IAC Driver</b>:
+            tick "Device is online", name a port <b>WING Bridge</b>, then restart this app.</li>
+          <li>In SuperRack, add a <b>MIDI Controller</b> with input port <b>IAC Driver WING Bridge</b>.</li>
+          <li>Press <b>Write SuperRack MIDI file</b> below, then in the MIDI Controller use
+            <b>Import MIDI Preferences</b> and choose that file. It maps all 16 USER KEYS and
+            navigation at once — no Learn needed. <b>Send</b> is still there to test a key.</li>
+        </ol>
+      </details>
+      <div class="row">
+        <button type="button" id="btn-mrrc" disabled>Write SuperRack MIDI file</button>
+        <span class="said" id="said-midi"></span>
+      </div>
+      <div class="btnmap" id="btnmap"></div>
+    </div>
+  </section>
+
+  </section>
+
+  <section class="tab" id="tab-sessions" hidden>
+    <div class="panel">
+      <h2>Sessions</h2>
+      <div class="body">
+        <p class="hint">A session is the show: the patch sheet, the names and what each USER button does.
+          The WING address, the interface, the ProLink port and the MIDI port belong to this machine and
+          never change with the session. Editing does not save on its own: <b>Save</b> writes the open session,
+          and a dot marks changes that are not in it yet.</p>
+        <div class="row">
+          <button type="button" class="primary" id="sess-load" disabled title="Open the selected session">Load</button>
+          <button type="button" id="sess-save" disabled title="Write the open session to its file">Save</button>
+          <button type="button" id="sess-saveas" disabled title="Save what is on screen under a new name">Save as</button>
+          <button type="button" id="sess-new" disabled title="Start an empty patch sheet under a new name">New</button>
+          <button type="button" id="sess-rename" disabled title="Rename the selected session">Rename</button>
+          <button type="button" id="sess-del" disabled title="Delete the selected session">Delete</button>
+          <span class="said" id="said-sess"></span>
+        </div>
+        <div class="sesslist" id="sesslist"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tab" id="tab-activity" hidden>
+  <section class="panel" id="p-log">
+    <h2 id="h-log">Activity</h2>
+    <div class="body"></div>
+  </section>
+
+  </section>
+
+  <section class="tab" id="tab-notes" hidden>
+  <section class="notes">
+    <h2>Worth knowing</h2>
+    <ul>
+      <li>The patch starts <b>locked</b>. Unlock it to edit, and lock it again once the sheet is right — a stray click during a show would repatch a strip.</li>
+      <li>Mapping uses <code>ShowRackByID</code>, which takes the <b>rack index</b>. <code>ShowRack</code> takes the <b>input index</b> instead and opens the wrong rack — VOX is rack 23 but sits on input 31.</li>
+      <li>Opening a rack also opens the first plugin in it.</li>
+      <li><b>Zoom</b> is the wheel with ctrl (or ⌘) held over the grid, or a pinch on the trackpad. It lasts while the window is open and starts at 100% every launch.</li>
+      <li>A strip links to exactly one rack. Clicking another crossing on the same row moves the link; clicking the same one clears it.</li>
+      <li>The same rack on two strips is flagged as a conflict.</li>
+      <li><b>Moved racks.</b> Each link remembers the rack's SuperRack name. If racks are reordered and a link now points at a rack with another name, it is flagged ⚠ with a hollow mark, and the app <b>will not open it</b> on strip select. <b>Relink by name</b> follows the original name; <b>Keep as is</b> accepts the rack now there.</li>
+      <li><b>DCAs are absent on purpose</b>: a DCA controls the gain of other channels but carries no audio, so it has no insert and no rack. The WING's <code>selidx</code> only covers channels, aux, buses, main and matrix.</li>
+      <li>Hatched columns are rack slots SuperRack has not named — it still calls them <code>Rack 35</code>, <code>Rack 36</code> and so on. They are linkable like any other.</li>
+      <li><b>A link follows the rack, never the audio patch.</b> Channel 1 to rack 1 stays channel 1 to rack 1 whatever is fed into that rack, and repatching audio mid-session does not move it. The reverse holds too: this app never writes audio routing — the only things it sends are which rack to show and, if you ask for it, names.</li>
+      <li>SuperRack needs <b>Assign</b> ticked once in its ProLink dialog. After that it reconnects on its own whenever the app starts — the app always presents the same console identity.</li>
+      <li>The rack count follows SuperRack: it is read from the inventory the console sends, not set here.</li>
+    </ul>
+
+    <h2>About</h2>
+    <p id="about-version" class="mono">Kite</p>
+    <p>An independent tool that links console strips to rack views. It reads the
+      console's selection and asks the rack host to show a rack; it never writes
+      audio routing. Names are written only when you ask for it.</p>
+    <p class="hint">Behringer and WING are trademarks of Music Tribe. Waves,
+      SuperRack and ProLink are trademarks of Waves Audio Ltd. Those names are
+      used here only to say which equipment this tool works with. Kite is not
+      affiliated with, authorised by or endorsed by either company, contains no
+      part of their software, and comes with no warranty.</p>
+  </section>
+  </section>
+</div>
+<script src="app.js"></script>

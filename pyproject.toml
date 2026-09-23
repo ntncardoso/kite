@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kite"
+description = "Links mixing console strips to plugin rack views, so selecting a strip opens its rack."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [{ name = "Antonio Cardoso" }]
+dynamic = ["version"]
+# Upper bounds on purpose: this runs shows, and a dependency's next major
+# version must not arrive on somebody's machine the evening of a gig. Raise
+# them deliberately, with the test suite green on both platforms.
+dependencies = [
+    "pywebview>=5,<7",
+    "pystray>=0.19,<0.20",
+    "pillow>=10,<13",
+    "psutil>=5.9,<8",
+    "python-rtmidi>=1.5,<2",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[project.scripts]
+kite = "kite.app:main"
+
+[tool.setuptools]
+packages = ["kite"]
+
+[tool.setuptools.package-data]
+kite = ["web/*"]
+
+[tool.setuptools.dynamic]
+version = { attr = "kite.__version__" }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4", "SIM", "RET", "PTH"]
+ignore = [
+    "E501",    # long lines are caught by review, not by a counter
+    "SIM105",  # contextlib.suppress reads worse than try/except: pass here
+    "B008",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B011"]

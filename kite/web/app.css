@@ -1,0 +1,364 @@
+  :root {
+    --cell: 30px;                  /* driven by the zoom control */
+    --axis: 124px;                 /* rack-name header: FIXED, never state-dependent */
+    --ground:#eceae6; --surface:#ffffff; --surface-2:#f4f3f0;
+    /* Surfaces stay neutral. Amber is spent only on links and the engine
+       switch, so a lit cell is the one thing that catches the eye. */
+    --band:#dedbd5;                /* collapsible group bands */
+    --band-ink:#4a4741;
+    --names:#f4f2ee;               /* rack and strip names */
+    --field:#ffffff;               /* patch area */
+    --field-alt:#f5f4f1;           /* alternate group, to read the boundary */
+    --grid:#c9c6c0;                /* the lattice — must be plainly visible */
+    --grid-strong:#8f8b84;         /* group boundaries */
+    --ink:#22262b; --muted:#6a7076; --line:#c9c6c0; --line-soft:#ddd9d3;
+    --accent:#a86d15; --accent-soft:#f2e6cf;
+    --ok:#3d7154; --warn:#9c4a39; --warn-soft:#f3e0da;
+    --focus:#a86d15;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:#131518; --surface:#1e2226; --surface-2:#242930;
+      --band:#2a2f36; --band-ink:#c3cad3;
+      --names:#222730; --field:#1b1e22; --field-alt:#1f2328;
+      --grid:#343941; --grid-strong:#4d545e;
+      --ink:#e7e4df; --muted:#8e959d; --line:#343941; --line-soft:#2b3037;
+      --accent:#dfa244; --accent-soft:#3a2f1c;
+      --ok:#6fa886; --warn:#cf7a64; --warn-soft:#33211c;
+      --focus:#dfa244;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:#131518; --surface:#1e2226; --surface-2:#242930;
+    --band:#2a2f36; --band-ink:#c3cad3;
+    --names:#222730; --field:#1b1e22; --field-alt:#1f2328;
+    --grid:#343941; --grid-strong:#4d545e;
+    --ink:#e7e4df; --muted:#8e959d; --line:#343941; --line-soft:#2b3037;
+    --accent:#dfa244; --accent-soft:#3a2f1c;
+    --ok:#6fa886; --warn:#cf7a64; --warn-soft:#33211c;
+    --focus:#dfa244;
+  }
+
+  * { box-sizing:border-box; }
+  /* The window never scrolls as a whole: the header stays put and each tab
+     scrolls inside itself. */
+  html, body { height:100%; overflow:hidden; }
+  body { background:var(--ground); color:var(--ink); margin:0;
+    font-family:"Barlow",system-ui,-apple-system,sans-serif; font-size:15px; line-height:1.45; }
+  .wrap { max-width:1400px; margin:0 auto; padding-inline:16px; padding-block:0;
+    height:100%; display:flex; flex-direction:column; min-height:0; }
+  section.tab { flex:1 1 auto; min-height:0; overflow:auto; padding-bottom:20px; }
+  section.tab[hidden] { display:none; }
+  #tab-patch { display:flex; flex-direction:column; overflow:hidden; padding-bottom:12px; }
+  #tab-patch[hidden] { display:none; }      /* the id rule would beat [hidden] */
+  .label { font-family:"Barlow Condensed","Barlow",sans-serif; text-transform:uppercase;
+    letter-spacing:.09em; font-weight:600; }
+  .mono { font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-variant-numeric:tabular-nums; }
+
+  /* ---------- sticky bars: connection first, then patch controls ---------- */
+  .bar { position:sticky; z-index:60; background:var(--ground);
+    display:flex; flex-wrap:wrap; align-items:center; gap:8px 14px; padding-block:9px; }
+  #bar-conn { top:env(safe-area-inset-top,0px); border-bottom:1px solid var(--line); z-index:62; }
+  .tabs { position:sticky; top:calc(env(safe-area-inset-top,0px) + var(--connh, 46px));
+          z-index:61; display:flex; gap:2px; padding:0 14px; background:var(--ground);
+          border-bottom:1px solid var(--line); }
+  .tabs button { background:none; border:0; border-bottom:2px solid transparent; border-radius:0;
+                 padding:9px 12px; color:var(--muted); font-size:11px; letter-spacing:.08em;
+                 text-transform:uppercase; cursor:pointer; }
+  .tabs button:hover { color:var(--ink); }
+  .tabs button[aria-selected="true"] { color:var(--ink); border-bottom-color:var(--accent); }
+  /* The tab is the scrolling box now, so the patch bar sticks to its own top. */
+  #bar-patch { top:0;
+    border-bottom:1px solid var(--line); z-index:61; }
+  .bar .spacer { flex:1 1 auto; }
+  .grp-ctl { display:inline-flex; align-items:center; gap:6px; }
+  .grp-ctl > .label { font-size:11px; color:var(--muted); }
+
+  .stat { display:flex; align-items:baseline; gap:5px; font-size:12px; color:var(--muted); }
+  .stat .n { font-size:18px; font-weight:600; color:var(--ink); }
+  .stat.bad .n { color:var(--warn); }
+
+  button { font-family:"Barlow Condensed","Barlow",sans-serif; text-transform:uppercase;
+    letter-spacing:.07em; font-weight:600; font-size:13px; background:var(--surface); color:var(--ink);
+    border:1px solid var(--line); border-radius:2px; padding:6px 11px; cursor:pointer; }
+  button:hover:not(:disabled) { border-color:var(--accent); color:var(--accent); }
+  button.primary { background:var(--accent); border-color:var(--accent); color:var(--ground); }
+  button.primary:hover { filter:brightness(1.08); color:var(--ground); }
+  button:disabled { opacity:.45; cursor:default; }
+  button.tog[aria-pressed="true"] { background:var(--accent); border-color:var(--accent); color:var(--ground); }
+  button.icon { padding:5px 9px; font-size:14px; line-height:1; }
+  :focus-visible { outline:2px solid var(--focus); outline-offset:2px; }
+
+  select, input[type="text"] { font-family:"IBM Plex Mono",monospace; font-size:12px;
+    background:var(--surface); color:var(--ink); border:1px solid var(--line);
+    border-radius:2px; padding:5px 6px; }
+  #iface { max-width:260px; }
+  .adv { flex:1 1 100%; display:flex; flex-wrap:wrap; align-items:center; gap:8px 14px;
+    padding-top:8px; border-top:1px dashed var(--line); }
+  .adv[hidden] { display:none; }
+  #winghost { width:130px; }
+
+  .live { display:inline-flex; align-items:center; gap:5px; font-size:11px; color:var(--muted);
+    font-family:"Barlow Condensed",sans-serif; text-transform:uppercase; letter-spacing:.07em; }
+  .live i { width:7px; height:7px; border-radius:50%; background:var(--muted); opacity:.5; }
+  .live.on i { background:var(--ok); opacity:1; }
+  .live.on { color:var(--ink); }
+  /* UDP has no connection: probing is not the same as answering */
+  .health { font-size:11px; color:var(--muted); white-space:nowrap;
+            font-variant-numeric:tabular-nums; }
+  .health .bad { color:var(--warn, #c62); font-weight:600; }
+  .btnmap { display:grid; grid-template-columns:minmax(150px,max-content) minmax(220px,max-content) max-content;
+            gap:6px 14px; align-items:center; margin:8px 0 18px; }
+  .btnmap .nm { color:var(--ink); }
+  .btnmap .nm small { color:var(--muted); margin-left:6px; }
+  .btnmap .err { grid-column:1 / -1; color:var(--warn, #c62); font-size:11px; margin-top:-4px; }
+  details.steps { margin:6px 0 4px; font-size:12px; color:var(--muted); }
+  details.steps summary { cursor:pointer; }
+  details.steps ol { margin:6px 0 0 18px; padding:0; }
+  /* Inside a tab the panel heading just repeats the tab name. */
+  section.tab > .panel > h2 { display:none; }
+  section.tab > .panel > .body { display:block; }
+  .sesslist { margin-top:10px; border:1px solid var(--line); border-radius:6px; overflow:hidden; }
+  .sesslist .sr { display:grid; grid-template-columns:1fr max-content max-content;
+                  gap:10px; align-items:center; padding:8px 12px; border-top:1px solid var(--line-soft);
+                  cursor:pointer; }
+  .sesslist .sr.sel { background:var(--line-soft); box-shadow:inset 3px 0 0 var(--accent); }
+  .sesslist .sr .open { font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); }
+  .sesslist .sr:first-child { border-top:0; }
+  .sesslist .sr.on .nm { font-weight:600; color:var(--ink); }
+  .sesslist .sr .when { font-size:11px; color:var(--muted); font-variant-numeric:tabular-nums; }
+  .sesslist .empty { padding:10px 12px; color:var(--muted); font-size:12px; }
+  .dot { color:var(--accent); }
+  .modal[hidden] { display:none; }          /* display:flex would beat [hidden] */
+  .modal { position:fixed; inset:0; z-index:50; display:flex; align-items:center; justify-content:center;
+           background:rgba(0,0,0,.45); }
+  .modal .card { background:var(--surface); border:1px solid var(--line); border-radius:8px;
+                 padding:18px 20px; min-width:min(360px, 90vw); box-shadow:0 12px 40px rgba(0,0,0,.35); }
+  .modal .card h3 { margin:0 0 10px; font-size:13px; letter-spacing:.06em; text-transform:uppercase; }
+  .modal .card input { width:100%; box-sizing:border-box; margin-bottom:6px; }
+  .modal .card .row { margin-top:12px; }
+  .modal .card .hint { margin:0; min-height:14px; }
+  .live.probing i { background:var(--accent); opacity:1; animation:pulse 1.1s ease-in-out infinite; }
+  .live.probing { color:var(--muted); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.25} }
+
+  /* The cornerstone control: strip selected on the WING -> rack opens in
+     SuperRack. It reads as a lit switch and says what IS happening, since it
+     doubles as the state indicator. */
+  button.engine { display:inline-flex; align-items:center; gap:8px;
+    font-size:13px; padding:8px 14px; border-width:2px; }
+  /* A button whose two labels are different lengths changes width as it is
+     pressed, and everything after it in the header row slides sideways. Both
+     labels live in the same grid cell instead: the button is always as wide as
+     the longer one, and aria-pressed picks which one is seen. */
+  button .swap { display:grid; }
+  button .swap > span { grid-area:1 / 1; text-align:left; }
+  button[aria-pressed="true"] .swap > .off,
+  button[aria-pressed="false"] .swap > .on { visibility:hidden; }
+  button.engine i { width:10px; height:10px; border-radius:50%;
+    background:var(--muted); opacity:.45; flex:0 0 auto; }
+  button.engine[aria-pressed="true"] { background:var(--accent); border-color:var(--accent);
+    color:var(--ground); }
+  button.engine[aria-pressed="true"] i { background:var(--ground); opacity:1;
+    box-shadow:0 0 0 3px rgba(255,255,255,.22); }
+  button.engine[aria-pressed="true"]:hover { filter:brightness(1.08); color:var(--ground); }
+  button.engine[aria-pressed="false"] { border-color:var(--warn); color:var(--warn); background:transparent; }
+  button.engine[aria-pressed="false"]:hover { border-color:var(--warn); color:var(--warn); filter:brightness(1.1); }
+  .sep { width:1px; align-self:stretch; background:var(--line); margin-inline:2px; }
+
+  /* Scan results hang under the address field. Without top/left an absolute box
+     keeps its static position, which in a flex row is beside the buttons — the
+     list came up on top of them. */
+  .anchor { position:relative; }
+  .found { border:1px solid var(--line); border-radius:2px; background:var(--surface);
+    position:absolute; top:100%; left:0; margin-top:4px; z-index:70;
+    min-width:240px; max-width:360px; box-shadow:0 8px 20px rgb(0 0 0 / .18); }
+  .found button { display:block; width:100%; text-align:left; border:none;
+    border-bottom:1px solid var(--line-soft); border-radius:0;
+    font-family:"IBM Plex Mono",monospace; text-transform:none; letter-spacing:0; }
+  .found button:last-child { border-bottom:none; }
+
+  /* ---------------- routing grid ---------------- */
+  .gridwrap { position:relative; flex:1 1 auto; min-height:200px;
+    /* No resize handle: dragging the corner resized the sheet on its own, which
+       was mistaken for resizing the window. The height follows the window. */
+    border:1px solid var(--line); background:var(--field); overflow:auto; }
+  .gridwrap.locked { background:var(--surface-2); }
+  .gridinner { position:relative; display:inline-block; min-width:100%; }
+  table.mx { border-collapse:separate; border-spacing:0; width:100%; }
+  /* Absorbs the leftover width so the bands reach the edge instead of
+     stopping mid-box, which looked ragged with everything collapsed. */
+  .fill { width:auto; min-width:0; }
+  th.fill.band { background:var(--band); border-bottom:1px solid var(--grid-strong); }
+  th.fill.names { background:var(--names); border-bottom:2px solid var(--grid-strong); }
+  td.fill.field { background:var(--field); border-bottom:1px solid var(--grid); }
+  table.mx th, table.mx td { padding:0; margin:0; }
+
+  /* crosshair: two lines that ride with the hovered cell */
+  .cross { position:absolute; pointer-events:none; z-index:18; background:var(--accent); opacity:.16; }
+  .cross.h { left:0; right:0; height:var(--cell); }
+  .cross.v { top:0; bottom:0; width:var(--cell); }
+  .cross[hidden] { display:none; }
+
+  /* zone 1 — group bands */
+  th.grp { position:sticky; top:0; z-index:35;
+    background:var(--band); color:var(--band-ink);
+    border-bottom:1px solid var(--grid-strong); border-left:2px solid var(--grid-strong);
+    font-family:"Barlow Condensed",sans-serif; text-transform:uppercase; letter-spacing:.08em;
+    font-size:11px; font-weight:700; white-space:nowrap;
+    padding:6px 8px; text-align:left; cursor:pointer; user-select:none; }
+  th.grp > * { vertical-align:middle; }
+  th.grp:hover { filter:brightness(1.06); }
+  th.grp .tw { font-family:"IBM Plex Mono",monospace; font-weight:400; opacity:.7; margin-left:6px; }
+  /* Expanders read as boxed +/-, the way Dante Controller marks a collapsed
+     device: quicker to scan across a wide header than a chevron. */
+  .exp { display:inline-flex; align-items:center; justify-content:center;
+    width:13px; height:13px; margin-right:6px; flex:0 0 auto;
+    border:1px solid currentColor; border-radius:1px; opacity:.85;
+    font-family:"IBM Plex Mono",monospace; font-size:11px; line-height:1; font-weight:700; }
+  /* The corner carries the convention of a patch sheet: a diagonal splitting
+     what the columns are from what the rows are. */
+  th.corner { position:sticky; left:0; top:0; z-index:50;
+    width:190px; min-width:190px; background:var(--names);
+    border-bottom:2px solid var(--grid-strong); border-right:2px solid var(--grid-strong);
+    padding:0; }
+  th.corner .wrapc { position:relative; width:100%; height:100%; min-height:var(--axis);
+    background:linear-gradient(to top right,
+      transparent calc(50% - .5px), var(--grid-strong) calc(50% - .5px),
+      var(--grid-strong) calc(50% + .5px), transparent calc(50% + .5px)); }
+  th.corner span { position:absolute; font-family:"Barlow Condensed",sans-serif;
+    text-transform:uppercase; letter-spacing:.1em; font-size:11px; font-weight:600;
+    color:var(--muted); white-space:nowrap; }
+  /* Each label sits in the middle of its own triangle rather than jammed into
+     a corner, which read as two loose words floating in a big empty box. */
+  th.corner .rk { top:22%; left:58%; }
+  th.corner .st { top:63%; left:12%; }
+
+  tr.fam th { position:sticky; left:0; z-index:30; height:calc(var(--cell) + 4px);
+    background:var(--band); color:var(--band-ink);
+    border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+    text-align:left; padding:6px 9px; cursor:pointer; user-select:none;
+    font-family:"Barlow Condensed",sans-serif; text-transform:uppercase; letter-spacing:.08em;
+    font-size:11px; font-weight:700; white-space:nowrap; }
+  tr.fam th:hover { filter:brightness(1.06); }
+  tr.fam th { display:table-cell; }
+  tr.fam td { background:var(--band); border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+
+  /* zone 2 — names. The number sits horizontally on top, ruled off from the
+     name: rotated and butted against it, grey touching white read as a gradient. */
+  th.rk { position:sticky; z-index:25; background:var(--names);
+    border-bottom:2px solid var(--grid-strong);
+    height:var(--axis); width:var(--cell); min-width:var(--cell); padding:0 0 5px; }
+  th.rk .col { display:flex; flex-direction:column; align-items:center; height:100%; gap:4px; }
+  th.rk .ix { flex:0 0 auto; width:100%; padding:3px 0 2px; border-bottom:1px solid var(--line-soft);
+    font-family:"IBM Plex Mono",monospace; font-size:max(10px, calc(var(--cell) * .38));
+    font-weight:500; font-variant-numeric:tabular-nums; color:var(--muted); text-align:center; }
+  th.rk .v { flex:1 1 auto; display:flex; align-items:flex-end; justify-content:center;
+    writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap;
+    /* Rotated text at small sizes is what made this sheet hard to read: keep a
+       floor of 12px, a little more weight, and no synthetic smoothing. */
+    font-size:clamp(12px, calc(var(--cell) * .5), 17px); font-weight:500;
+    letter-spacing:.01em; -webkit-font-smoothing:antialiased;
+    overflow:hidden; color:var(--ink); }
+  /* Rotating the text is what softens it: the glyphs are rasterised upright and
+     then turned. Where the browser can set vertical text natively (sideways-lr),
+     there is no transform and the names come out sharp. */
+  @supports (writing-mode: sideways-lr) {
+    th.rk .v { writing-mode:sideways-lr; transform:none; }
+  }
+  th.rk.empty .v { color:var(--muted); opacity:.7; font-style:italic; }
+  th.rk.empty .ix { opacity:.6; }
+  th.rk.gstart { border-left:2px solid var(--grid-strong); }
+  th.strip { position:sticky; left:0; z-index:20; background:var(--names);
+    border-bottom:1px solid var(--grid); border-right:2px solid var(--grid-strong);
+    text-align:left; padding:0 9px; width:190px; min-width:190px; white-space:nowrap;
+    height:var(--cell); overflow:hidden; }
+  th.strip .sn { font-family:"IBM Plex Mono",monospace; color:var(--muted); margin-right:6px;
+    font-size:max(11px, calc(var(--cell) * .42)); }
+  th.strip input { font-family:inherit; background:transparent; color:var(--ink);
+    border:none; border-bottom:1px dotted var(--line); width:104px;
+    font-size:max(13px, calc(var(--cell) * .5)); padding:0; line-height:1.15; }
+  th.strip input:focus { border-bottom-color:var(--accent); outline:none; }
+  th.strip.hot { background:var(--accent-soft); }
+  tr.conflict th.strip { background:var(--warn-soft); }
+  /* moved: the link points at a rack that no longer carries the name it was
+     made against. Hollow mark = "this is where it points, not where it meant". */
+  tr.moved th.strip { background:var(--warn-soft); }
+  tr.moved th.strip .sn::after { content:" ⚠"; color:var(--warn); }
+  td.cell.moved[aria-pressed="true"] .mk { background:transparent;
+    border:2px solid var(--warn); box-sizing:border-box; }
+
+  /* zone 3 — patch field */
+  td.cell { width:var(--cell); min-width:var(--cell); height:var(--cell); background:var(--field);
+    border-bottom:1px solid var(--grid); border-right:1px solid var(--grid);
+    text-align:center; vertical-align:middle; cursor:pointer; }
+  td.cell.alt { background:var(--field-alt); }
+  td.cell.gstart { border-left:2px solid var(--grid-strong); }
+  .gridwrap:not(.locked) td.cell:hover { background:var(--accent-soft); }
+  td.cell .mk { display:block; width:calc(var(--cell) * .5); height:calc(var(--cell) * .5);
+    margin:0 auto; border-radius:2px; border:1px solid transparent; }
+  td.cell[aria-pressed="true"] .mk { background:var(--accent); }
+  td.cell.conflict[aria-pressed="true"] .mk { background:var(--warn); }
+  .gridwrap:not(.locked) td.cell:hover .mk { border-color:var(--accent); }
+  td.cell.empty { background-image:repeating-linear-gradient(45deg,transparent,transparent 4px,var(--line-soft) 4px,var(--line-soft) 5px); }
+  .gridwrap.locked td.cell { cursor:default; }
+
+  th.folded { width:var(--cell); min-width:var(--cell); background:var(--band); cursor:pointer;
+    height:var(--axis); padding:0; vertical-align:middle; }
+  th.folded .vgrp { writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap;
+    display:inline-flex; align-items:center; gap:7px;
+    font-family:"Barlow Condensed",sans-serif; text-transform:uppercase; letter-spacing:.08em;
+    font-size:11px; font-weight:700; color:var(--band-ink); }
+  th.folded .vgrp .n { font-family:"IBM Plex Mono",monospace; font-weight:400;
+    font-size:10px; opacity:.7; }
+  th.grp.shutgrp { width:var(--cell); min-width:var(--cell); padding:6px 0; text-align:center; }
+  th.grp.shutgrp .exp { margin-right:0; }
+  td.folded { width:var(--cell); background:var(--field-alt); border-left:2px solid var(--grid-strong);
+    border-bottom:1px solid var(--grid); text-align:center; cursor:pointer; }
+  td.folded .dot { display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--accent); }
+  td.folded .dot.warn { background:transparent; border:2px solid var(--warn); width:8px; height:8px; }
+
+  /* ---------------- panels ---------------- */
+  section.panel { margin-top:26px; }
+  section.panel > h2 { font-family:"Barlow Condensed",sans-serif; text-transform:uppercase;
+    letter-spacing:.07em; font-size:15px; margin:0 0 6px; cursor:pointer; user-select:none; }
+  section.panel > h2::before { content:"−"; display:inline-flex; align-items:center;
+    justify-content:center; width:13px; height:13px; margin-right:7px;
+    border:1px solid var(--muted); border-radius:1px; color:var(--muted);
+    font-family:"IBM Plex Mono",monospace; font-size:11px; font-weight:700;
+    vertical-align:1px; }
+  section.panel.shut > h2::before { content:"+"; }
+  section.panel.shut > .body { display:none; }
+  .hint { color:var(--muted); font-size:13px; margin:0 0 12px; max-width:66ch; }
+
+  .cols { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:20px; }
+  .namelist { border:1px solid var(--line); background:var(--surface); max-height:300px; overflow:auto; }
+  .namelist .nr { display:grid; grid-template-columns:58px 1fr; gap:8px; align-items:center;
+    padding:3px 8px; border-bottom:1px solid var(--line-soft); }
+  .namelist .nr:last-child { border-bottom:none; }
+  .namelist .nr span { font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--muted); }
+  .namelist input { font-family:inherit; font-size:13px; background:transparent; color:var(--ink);
+    border:none; border-bottom:1px dotted var(--line); padding:2px 0; width:100%; }
+  .namelist input:focus { border-bottom-color:var(--accent); outline:none; }
+  h3.sm { font-family:"Barlow Condensed",sans-serif; text-transform:uppercase; letter-spacing:.07em;
+    font-size:12px; color:var(--muted); margin:0 0 6px; }
+
+  textarea { width:100%; min-height:130px; resize:vertical; font-family:"IBM Plex Mono",monospace;
+    font-size:12px; line-height:1.5; background:var(--surface); color:var(--ink);
+    border:1px solid var(--line); border-radius:2px; padding:10px; }
+  .row { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; align-items:center; }
+  .said { font-size:12px; color:var(--ok); }
+  .applog { font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--muted);
+    background:var(--surface); border:1px solid var(--line); padding:8px 10px;
+    max-height:150px; overflow:auto; white-space:pre-wrap; margin-top:10px; }
+
+  section.notes { margin-top:30px; border-top:1px solid var(--line); padding-top:16px; }
+  section.notes h2 { font-family:"Barlow Condensed",sans-serif; text-transform:uppercase;
+    letter-spacing:.07em; font-size:15px; margin:0 0 8px; }
+  section.notes ul { margin:0; padding-left:18px; color:var(--muted); font-size:13px; }
+  section.notes li { margin-bottom:7px; max-width:74ch; }
+  code { font-family:"IBM Plex Mono",monospace; font-size:12px; background:var(--surface-2);
+    padding:1px 4px; border-radius:2px; color:var(--ink); }
+
+  @media (prefers-reduced-motion: reduce) { *, .live.probing i { animation:none !important; transition:none !important; } }
+  button.armed { background: var(--warn, #c62); color: #fff; border-color: transparent; }
