@@ -39,10 +39,19 @@ body:
     attributes:
       label: Rack host and version
       placeholder: SuperRack Performer 15.15.12.13
+  - type: markdown
+    attributes:
+      value: |
+        **The quickest way to send everything useful at once:** in the app,
+        Help → **Save diagnostics**. It writes one zip to your Desktop with the
+        log and the facts that explain it — versions, what was connected, the
+        MIDI port, the network interfaces. It leaves out your patch sheet, your
+        names and your session names, and it sends nothing anywhere: attach it
+        here yourself, or open it first and see exactly what is in it.
   - type: textarea
     id: log
     attributes:
-      label: The relevant lines from the log
+      label: The relevant lines from the log, if you would rather paste than attach
       description: |
         macOS — ~/Library/Application Support/Kite/kite.log
         Windows — %APPDATA%\Kite\kite.log

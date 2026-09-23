@@ -113,6 +113,23 @@ on macOS, right-click → Open; on Windows, More info → Run anyway.
 Nothing from the config directory goes into a build. Settings, sessions and
 logs belong to the machine the app runs on.
 
+## Reporting a problem
+
+In the app: **Help → Save diagnostics**. It writes one zip to your Desktop
+holding the log, the rotated logs behind it, and the facts that make them
+readable — versions, what was connected, the MIDI port, the network
+interfaces.
+
+It **sends nothing anywhere**. The file is yours: open it, read it, and attach
+it to an issue if you want to. It leaves out the patch sheet, the names and the
+session names, which are your customer's work; those appear only as counts.
+
+The log itself lives beside the config, and rotates at 1 MB with three files
+kept:
+
+- macOS — `~/Library/Application Support/Kite/kite.log`
+- Windows — `%APPDATA%\Kite\kite.log`
+
 ## Development
 
 ```sh

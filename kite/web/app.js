@@ -369,6 +369,23 @@
     }, { passive: false });
   })();
 
+  /* A tester's bug report is only as good as what comes with it. */
+  function wireDiagnostics(){
+    const b = document.getElementById("btn-diag");
+    if (!b || !API) return;
+    b.addEventListener("click", async () => {
+      b.disabled = true;
+      say("said-diag", "writing…");
+      try {
+        const r = await API.save_diagnostics();
+        say("said-diag", r.ok ? `Saved to your Desktop: ${r.name}` : r.msg);
+      } catch (e) {
+        say("said-diag", String(e));
+      }
+      b.disabled = false;
+    });
+  }
+
   /* ---------------- theme ---------------- */
   /* Light by default, on every machine and whatever the system is set to: the
      app looks the same wherever it is opened. The choice is remembered here
@@ -748,6 +765,7 @@
     consoleBtns = r.buttons;
     said.textContent = "";
     renderButtons();
+    wireDiagnostics();
   }
   // Buttons are named as the console names them: USER 1-16 across banks U1-U4,
   // and the two GPIO buttons.

@@ -19,7 +19,7 @@ import time
 import webbrowser
 from pathlib import Path
 
-from . import APP_NAME, __version__, paths, runtime, userkeys
+from . import APP_NAME, __version__, diagnostics, paths, runtime, userkeys
 from .midi_link import CHANNEL as MIDI_CHANNEL
 from .midi_link import MidiLink
 from .prolink import ProLinkConsole
@@ -842,6 +842,15 @@ class App:
                 self.connect_wing(self.cfg["wingHost"])
             self._push("status", self.status())
         return {"ok": True, "network": after}
+
+    def save_diagnostics(self, out_dir=None):
+        """Write one file a tester can attach to a report. Sends nothing."""
+        try:
+            out = diagnostics.bundle(self, out_dir)
+        except Exception as e:
+            return {"ok": False, "msg": f"could not write it ({e})"}
+        self._log(f"diagnostics written: {out.name}")
+        return {"ok": True, "path": str(out), "name": out.name}
 
     def open_config_folder(self):
         webbrowser.open(paths.CONFIG.parent.as_uri())

@@ -5,6 +5,15 @@ follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.3] — 2026-09-23
+
+### Added
+- **Help → Save diagnostics**: one zip on the Desktop with the log, the
+  rotated logs behind it, and the facts that make them readable — versions,
+  what was connected, the MIDI port, the network interfaces. It sends nothing
+  anywhere, and it leaves out the patch sheet, the names and the session
+  names; those appear only as counts. The issue form points at it.
+
 ## [0.1.2] — 2026-09-23
 
 One fix, and it is the reason to replace 0.1.1 on Windows.
