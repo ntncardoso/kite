@@ -9,6 +9,11 @@ in the middle of a show.
 Works with the Behringer WING (over OSC) and Waves SuperRack Performer (over
 its remote-console protocol and MIDI). See [Notice](#notice).
 
+![The patch sheet: every strip linked to its rack](docs/patch-sheet.png)
+
+*The screenshots show a show that never happened. A real session's rack names
+belong to the customer who paid for it.*
+
 - macOS and Windows.
 - Lives in the menu bar / tray. Closing the window does not stop the bridge;
   only **Quit** in the tray does.
@@ -24,6 +29,13 @@ its remote-console protocol and MIDI). See [Notice](#notice).
 | **USER keys** | The host's 16 USER KEYS, fired over MIDI, and the console's 16 USER buttons that can fire them. Exports the host's MIDI map file so they are mapped in one import. |
 | **Sessions** | A show is a file. It saves when you say so — editing the grid saves nothing on its own. Machine settings (network, ports, identity) stay out of the session. |
 | **Activity** | What the bridge did, in order. The first place to look when something does not open. |
+
+![The console's USER buttons, each firing one of the host's USER KEYS](docs/user-keys.png)
+
+It opens light on every machine, and the switch at the right of the header
+turns it dark for the rooms that need it:
+
+![The same patch sheet in the dark theme](docs/dark-theme.png)
 
 ## Tested against
 
@@ -97,6 +109,16 @@ the host will never find the console: it is the host that opens the connection.
    reconnects on its own from then on.
 
 ## Building
+
+Screenshots in `docs/` are generated, not taken:
+
+```sh
+.venv/bin/python packaging/screenshots.py
+```
+
+It stages a fictional show in the real page and renders it with a headless
+browser, so they can be refreshed in one command after an interface change
+rather than going quietly out of date.
 
 ```sh
 .venv/bin/pip install pyinstaller
