@@ -5,6 +5,26 @@ follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.4] — 2026-09-24
+
+Found with a console on the desk and the rack host running — three ways the
+app stayed quiet while nothing happened.
+
+### Fixed
+- Taking over a console button that was already in a MIDI mode wrote nothing
+  to it, so the button's screen kept its old label and the app looked as if it
+  had ignored the request. It now renames the button for the action it fires,
+  leaves its function alone, and remembers the old name to put back when the
+  button is released.
+- The button beside a USER KEY row said **Send**, which reads as "send this to
+  the console". It fires the key in the rack host and changes nothing on the
+  console, so it says **Test**.
+
+### Added
+- A warning, in the USER keys tab and in the log, when the rack host has no
+  USER KEYS assigned. A press reaches it and does nothing, because there is
+  nothing behind the key — which looks exactly like a broken bridge.
+
 ## [0.1.3] — 2026-09-23
 
 ### Added

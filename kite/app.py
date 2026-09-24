@@ -291,11 +291,20 @@ class App:
         base = f"/$ctl/user/{key}"
         mode = (self._wing_query([f"{base}/mode"]).get(f"{base}/mode") or [None])[0]
         if mode in ("MIDICCP", "MIDICCT", "MIDINP", "MIDINT"):
-            # Set up by hand on the console already, in a mode that reports
-            # presses: use it as it is — nothing is written to it.
+            # Already in a mode that reports presses — set up by hand, or left
+            # that way by an earlier session. Its function is not touched, but
+            # its NAME is: a button that now fires a rack key must say so on
+            # the console's screen, or the desk shows one thing and does
+            # another. Taking it over silently is how this looked broken: the
+            # app said yes, and nothing on the console changed (2026-09-24).
+            # The old name is kept so releasing the button can put it back.
+            self.cfg.setdefault("buttonsAdopted", {}).setdefault(
+                key, (self._wing_query([f"{base}/name"]).get(f"{base}/name") or [""])[0])
+            self.wing.send(f"{base}/name", [("s", self._label(action))])
             self._bind(action, key)
             self._save_config()
-            return {"ok": True, "buttons": self.cfg["buttons"]}
+            self._log(f"button {key} was already in {mode} — kept as it is, renamed for {action}")
+            return {"ok": True, "adopted": True, "buttons": self.cfg["buttons"]}
         if mode != "OFF" and not replace:
             # In use for something else: only on explicit confirmation, since
             # the button's old function is lost (only mode and name could be
@@ -340,6 +349,14 @@ class App:
         the console; a button configured by hand (Learn) is left as it is."""
         key = self.cfg.setdefault("buttons", {}).pop(action, None)
         freed = False
+        adopted = self.cfg.setdefault("buttonsAdopted", {})
+        if key and key in adopted:
+            # Never ours to turn off; give back the name it had and let go.
+            if self.wing and self.wing.alive:
+                self.wing.send(f"/$ctl/user/{key}/name", [("s", adopted[key])])
+            del adopted[key]
+            self._save_config()
+            return {"ok": True, "freed": False, "buttons": self.cfg["buttons"]}
         if key:
             pending = self.cfg.setdefault("buttonsPending", [])
             if key in pending:
@@ -424,6 +441,7 @@ class App:
         return {"ok": True, "path": str(out), "count": len(cmds)}
 
     _uk_stamp = None
+    _uk_warned = False
 
     def _refresh_user_keys(self):
         """One pass: re-read the host's USER KEYS if its files have moved on.
@@ -436,6 +454,15 @@ class App:
             return False
         self._uk_stamp = stamp
         names = self._read_user_keys()
+        # An empty table is not the same as no session: the host is open and
+        # every key is unassigned, so every press we send lands on nothing.
+        # Worth saying once — it looks exactly like a broken bridge.
+        if names == {} and self.waves.connected and not self._uk_warned:
+            self._uk_warned = True
+            self._log("the rack host has no USER KEYS assigned — presses reach it "
+                      "and do nothing until they are assigned in its settings")
+        elif names:
+            self._uk_warned = False
         if names is None or names == self.uk_names:
             return False
         self.uk_names = names

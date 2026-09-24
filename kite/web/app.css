@@ -128,6 +128,7 @@
   .health { font-size:11px; color:var(--muted); white-space:nowrap;
             font-variant-numeric:tabular-nums; }
   .health .bad { color:var(--warn, #c62); font-weight:600; }
+  .warnbox { border-left:3px solid var(--warn); padding-left:10px; color:var(--ink); }
   .btnmap { display:grid; grid-template-columns:minmax(150px,max-content) minmax(220px,max-content) max-content;
             gap:6px 14px; align-items:center; margin:8px 0 18px; }
   .btnmap .nm { color:var(--ink); }

@@ -13,7 +13,8 @@ from . import paths
 # console button does what. Network settings, the console identity and the MIDI
 # port stay in config.json and are never carried by a session.
 SESSION_KEYS = ("map", "anchors", "names", "rackNames", "rackCount",
-                "buttons", "buttonsOwned", "buttonsPending", "buttonsToFree")
+                "buttons", "buttonsOwned", "buttonsPending", "buttonsToFree",
+                "buttonsAdopted")
 
 # The shape of a session file. It is written into every file so that a future
 # version can tell what it is reading, and so that a file written by a NEWER

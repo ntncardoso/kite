@@ -784,6 +784,8 @@
   function renderButtons(){
     const box = document.getElementById("btnmap");
     if (!box) return;
+    const none = document.getElementById("uk-none");
+    if (none) none.hidden = Object.keys(ukNames || {}).length > 0;
     box.innerHTML = "";
     const pendingKeys = new Set(btnState.pending || []);
     const byKey = {};                       // WING button key -> action
@@ -843,8 +845,11 @@
       const ukn = mine && mine.startsWith("uk") ? mine.slice(2) : null;
       if (ukn) {
         extra = document.createElement("button"); extra.type = "button";
-        extra.textContent = "Send";
-        extra.title = "Fire this USER KEY now — use it for SuperRack's MIDI Learn";
+        // Not "Send": this fires the key in SuperRack, it does not send
+        // anything to the console, and one of those was read as the other.
+        extra.textContent = "Test";
+        extra.title = "Fires this key in SuperRack right now, to check the mapping. "
+                    + "It changes nothing on the console.";
         extra.disabled = !API;
         extra.addEventListener("click", async () => {
           const r = await API.press_user_key(Number(ukn));
