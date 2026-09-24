@@ -12,6 +12,7 @@ Nothing real is contacted: the stand-in is a socket in this process.
 import socket
 import struct
 import threading
+import time
 
 import pytest
 
@@ -54,12 +55,23 @@ class FakeHost:
     """A rack host, as far as the endpoint can tell: connects, then talks OSC."""
 
     def __init__(self, port):
-        try:
-            self.sock = socket.create_connection(("::1", port), timeout=5)
-        except OSError:
-            self.sock = socket.create_connection(("127.0.0.1", port), timeout=5)
-        self.sock.settimeout(5)
-        self.buf = b""
+        # The endpoint binds its socket on a thread of its own, so a connection
+        # attempted in the same breath as start() can be refused before it is
+        # listening. Keep knocking rather than failing a test over a race that
+        # no rack host would ever lose (a CI runner did, 2026-09-24).
+        deadline = time.time() + 10
+        last = None
+        while time.time() < deadline:
+            for host in ("::1", "127.0.0.1"):
+                try:
+                    self.sock = socket.create_connection((host, port), timeout=5)
+                    self.sock.settimeout(5)
+                    self.buf = b""
+                    return
+                except OSError as e:
+                    last = e
+            time.sleep(0.05)
+        raise AssertionError(f"the endpoint never started listening on {port}: {last}")
 
     def read_frame(self):
         """The next whole frame, as (type, body).
