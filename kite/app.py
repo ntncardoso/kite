@@ -191,6 +191,52 @@ class App:
     # GPIO is left out until its addressing is confirmed on the console.
     BUTTON_KEYS = [f"U{b}/{n}/bu" for b in range(1, 5) for n in range(1, 5)]
 
+    # A button set to a MIDI mode also needs an assignment of its OWN. Two
+    # buttons left on the same channel and CC are mirrored by the console: one
+    # press reports on both addresses, a millisecond apart, and the bridge
+    # dutifully fires both actions. Found live on 2026-09-24, with U1/1 and
+    # U1/3 both sitting on the factory default (channel 1, CC 0).
+    #
+    # Channel 16 and CC 100 upwards: clear of the 1-16 this app sends to the
+    # rack host, and clear of anything an engineer is likely to have set by
+    # hand on a console's lower channels.
+    BUTTON_MIDI_CHANNEL = 16
+
+    @classmethod
+    def _button_cc(cls, key):
+        """A CC number that belongs to this button and no other."""
+        return 100 + cls.BUTTON_KEYS.index(key)
+
+    def _write_button_midi(self, key):
+        """Give a button we own an assignment nothing else shares."""
+        base = f"/$ctl/user/{key}"
+        self.wing.send(f"{base}/ch", [("i", self.BUTTON_MIDI_CHANNEL)])
+        self.wing.send(f"{base}/cc", [("i", self._button_cc(key))])
+
+    def _repair_button_midi(self):
+        """Re-check the buttons this app set up, and fix any that collide.
+
+        Runs when the console starts answering: a console configured by an
+        earlier version has buttons sharing channel 1 / CC 0, and until they
+        are separated every press fires two actions.
+        """
+        if not (self.wing and self.wing.alive):
+            return
+        owned = list(self.cfg.get("buttonsOwned", []))
+        if not owned:
+            return
+        addrs = [f"/$ctl/user/{k}/{leaf}" for k in owned for leaf in ("ch", "cc")]
+        got = self._wing_query(addrs)
+        for key in owned:
+            ch = (got.get(f"/$ctl/user/{key}/ch") or [None])[0]
+            cc = (got.get(f"/$ctl/user/{key}/cc") or [None])[0]
+            want_cc = self._button_cc(key)
+            if int(ch or 0) != self.BUTTON_MIDI_CHANNEL or int(cc or 0) != want_cc:
+                self._write_button_midi(key)
+                self._log(f"button {key}: MIDI assignment was channel {ch} CC {cc} — "
+                          f"moved to channel {self.BUTTON_MIDI_CHANNEL} CC {want_cc}, "
+                          f"so the console stops mirroring it onto another button")
+
     _learning = None
 
     def _on_wing_button(self, key):
@@ -261,6 +307,7 @@ class App:
         for key in list(self.cfg.get("buttonsToFree", [])):
             self._free_button(key)
             self.cfg["buttonsToFree"].remove(key)
+        self._repair_button_midi()
         for key in list(self.cfg.get("buttonsPending", [])):
             action = next((a for a, k in self.cfg.get("buttons", {}).items() if k == key), None)
             self.cfg["buttonsPending"].remove(key)
@@ -298,13 +345,18 @@ class App:
             # another. Taking it over silently is how this looked broken: the
             # app said yes, and nothing on the console changed (2026-09-24).
             # The old name is kept so releasing the button can put it back.
-            self.cfg.setdefault("buttonsAdopted", {}).setdefault(
-                key, (self._wing_query([f"{base}/name"]).get(f"{base}/name") or [""])[0])
+            ours = key in self.cfg.get("buttonsOwned", [])
+            if ours:
+                self._write_button_midi(key)      # ours: keep it separated
+            else:
+                self.cfg.setdefault("buttonsAdopted", {}).setdefault(
+                    key, (self._wing_query([f"{base}/name"]).get(f"{base}/name") or [""])[0])
             self.wing.send(f"{base}/name", [("s", self._label(action))])
             self._bind(action, key)
             self._save_config()
-            self._log(f"button {key} was already in {mode} — kept as it is, renamed for {action}")
-            return {"ok": True, "adopted": True, "buttons": self.cfg["buttons"]}
+            self._log(f"button {key} now fires {action}" if ours else
+                      f"button {key} was already in {mode} — kept as it is, renamed for {action}")
+            return {"ok": True, "adopted": not ours, "buttons": self.cfg["buttons"]}
         if mode != "OFF" and not replace:
             # In use for something else: only on explicit confirmation, since
             # the button's old function is lost (only mode and name could be
@@ -314,6 +366,7 @@ class App:
         if mode != "OFF":
             self._log(f"button {key} was {mode} — replaced for {action}")
         self.wing.send(f"{base}/mode", [("s", "MIDICCP")])
+        self._write_button_midi(key)
         self.wing.send(f"{base}/name", [("s", self._label(action))])
         got = self._wing_query([f"{base}/mode", f"{base}/name"])
         if (got.get(f"{base}/mode") or [None])[0] != "MIDICCP":

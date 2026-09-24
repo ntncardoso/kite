@@ -5,6 +5,17 @@ follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.5] — 2026-09-24
+
+### Fixed
+- One press on a console button fired two actions. The app set a button's mode
+  but never gave it a MIDI assignment of its own, so buttons sat on the
+  console's default — channel 1, CC 0 — and the console mirrors controls that
+  share an assignment: one press reported on both addresses a millisecond
+  apart, and the bridge obeyed both. Buttons it sets up now get channel 16 and
+  a CC of their own, and a console configured by an earlier version is
+  repaired the moment it starts answering.
+
 ## [0.1.4] — 2026-09-24
 
 Found with a console on the desk and the rack host running — three ways the

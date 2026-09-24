@@ -99,3 +99,45 @@ def test_releasing_an_adopted_button_gives_its_name_back(bridge, monkeypatch):
     assert bridge.wing.sent[-1] == ("/$ctl/user/U4/4/bu/name", "SCENE UP")
     assert "U4/4/bu" not in bridge.cfg["buttonsAdopted"]
     assert "uk16" not in bridge.cfg["buttons"]
+
+
+def test_a_button_we_set_up_gets_a_midi_assignment_of_its_own(bridge, monkeypatch):
+    """Two buttons on the same channel and CC are mirrored by the console: one
+    press arrives on both addresses and fires two actions. Seen live."""
+    monkeypatch.setattr(type(bridge), "_wing_query",
+                        lambda self, addrs, **kw: {a: ["OFF" if a.endswith("mode") else ""]
+                                                   for a in addrs})
+    bridge.wing = FakeWing(mode="OFF")
+    # The console reports MIDICCP back when asked to confirm the write.
+    monkeypatch.setattr(type(bridge), "_wing_query",
+                        lambda self, addrs, **kw: {a: ["MIDICCP" if a.endswith("mode") else ""]
+                                                   for a in addrs}
+                        if bridge.wing.sent else
+                        {a: ["OFF" if a.endswith("mode") else ""] for a in addrs})
+
+    bridge.assign_button("rack-next", "U1/3/bu")
+    written = dict(bridge.wing.sent)
+    assert written["/$ctl/user/U1/3/bu/ch"] == bridge.BUTTON_MIDI_CHANNEL
+    assert written["/$ctl/user/U1/3/bu/cc"] == bridge._button_cc("U1/3/bu")
+
+
+def test_every_button_gets_a_different_cc():
+    from kite.app import App
+    ccs = [App._button_cc(k) for k in App.BUTTON_KEYS]
+    assert len(set(ccs)) == len(ccs) == 16
+    assert min(ccs) >= 17, "must not collide with the USER KEY CCs this app sends"
+
+
+def test_colliding_buttons_are_repaired_when_the_console_answers(bridge, monkeypatch):
+    """A console set up by an earlier version has buttons sharing channel 1,
+    CC 0. They are separated the moment it starts answering."""
+    bridge.wing = FakeWing(mode="MIDICCP")
+    bridge.cfg["buttonsOwned"] = ["U1/1/bu", "U1/3/bu"]
+    monkeypatch.setattr(type(bridge), "_wing_query", lambda self, addrs, **kw: {
+        a: [1] if a.endswith("/ch") else [0] for a in addrs})
+
+    bridge._repair_button_midi()
+    written = dict(bridge.wing.sent)
+    assert written["/$ctl/user/U1/1/bu/cc"] != written["/$ctl/user/U1/3/bu/cc"]
+    assert written["/$ctl/user/U1/1/bu/ch"] == bridge.BUTTON_MIDI_CHANNEL
+    assert any("stops mirroring" in line for line in bridge.logs)
