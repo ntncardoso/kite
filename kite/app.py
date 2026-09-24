@@ -1166,6 +1166,14 @@ def listen_for_second_start(app, port=SINGLE_INSTANCE_PORT):
 
 
 def main():
+    # A child started only to find out whether a MIDI client can be created.
+    # It either exits quietly or dies in the attempt, which is the whole point:
+    # see MidiLink.probe.
+    if os.environ.get(MidiLink.PROBE_ENV):
+        import rtmidi
+        rtmidi.MidiOut()
+        return 0
+
     runtime.setup_logging(paths.config_dir())
     if already_running_show():
         print("already running — asked the running one to show its window", flush=True)

@@ -120,6 +120,7 @@ class WingLink:
         self.last_rx = 0.0
         self._alive = False
         self._last_selidx = None
+        self._gripes = {}
         self._stop = threading.Event()
 
     @property
@@ -156,13 +157,30 @@ class WingLink:
             except Exception:
                 pass
 
+    # Selection is polled three times a second, so a console that is switched
+    # off writes three identical failures a second for as long as it is off —
+    # a log that rotates away the very history it was kept for (seen when a
+    # desk was powered down mid-session, 2026-09-24). The same complaint is
+    # made once a minute, and says how many times it happened.
+    _gripe_every = 60
+
+    def _gripe(self, kind, detail):
+        now = time.time()
+        first, count = self._gripes.get(kind, (0.0, 0))
+        if now - first < self._gripe_every:
+            self._gripes[kind] = (first, count + 1)
+            return
+        self._gripes[kind] = (now, 0)
+        again = f" ({count + 1} times in the last minute)" if count else ""
+        self.log(f"{detail}{again}")
+
     def send(self, addr, args=()):
         if not self.sock:
             return
         try:
             self.sock.sendto(osc_build(addr, args), (self.host, self.port))
         except Exception as e:
-            self.log(f"WING: failed to send {addr}: {e}")
+            self._gripe(type(e).__name__, f"WING: cannot reach {self.host}: {e}")
 
     def get(self, addr):
         """Query: the reply arrives asynchronously in _rx_loop."""

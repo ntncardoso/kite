@@ -16,6 +16,8 @@ new one by itself: after every restart it must be reselected in SuperRack
 (seen 2026-09-22). So the virtual port is a fallback, reported as such.
 """
 
+import os
+import subprocess
 import sys
 
 CHANNEL = 16                 # 1-16; kept away from channel 1, which most gear uses
@@ -30,11 +32,42 @@ class MidiLink:
         self.persistent = False
         self.port = None
 
+    # Creating the MIDI client is the one call here that can take the whole
+    # application with it. On macOS, rtmidi's CoreMIDI client creation throws a
+    # C++ exception that escapes as an unexpected-handler call: the process
+    # aborts before Python sees anything to catch. Seen on 2026-09-24, starting
+    # a new copy two seconds after killing the old one — the dying instance
+    # still held the client.
+    #
+    # So it is tried in a child first. A child that dies takes nothing with it,
+    # and the bridge carries on without MIDI, saying so.
+    PROBE_ENV = "KITE_MIDI_PROBE"
+    PROBE_TIMEOUT = 15
+
+    @classmethod
+    def probe(cls):
+        """Can a MIDI client be created on this machine right now?"""
+        env = dict(os.environ, **{cls.PROBE_ENV: "1"})
+        cmd = ([sys.executable] if getattr(sys, "frozen", False)
+               else [sys.executable, "-c", "import rtmidi; rtmidi.MidiOut()"])
+        try:
+            r = subprocess.run(cmd, env=env, timeout=cls.PROBE_TIMEOUT,
+                               capture_output=True)
+        except (OSError, subprocess.SubprocessError):
+            return True          # cannot check: do not stand in the way
+        return r.returncode == 0
+
     def open(self):
         try:
             import rtmidi
         except Exception as e:
             self.error = f"MIDI unavailable ({e})"
+            return False
+        if not self.probe():
+            self.error = ("MIDI is not available on this machine at the moment — "
+                          "the system refused a MIDI client. The bridge works "
+                          "without it; USER KEYS will not.")
+            self.log(self.error)
             return False
         try:
             out = rtmidi.MidiOut()

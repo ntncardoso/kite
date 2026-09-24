@@ -5,6 +5,22 @@ follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.7] — 2026-09-24
+
+Two ways the app made a bad moment worse.
+
+### Fixed
+- **A MIDI failure killed the app.** Creating the MIDI client threw a C++
+  exception that escaped and aborted the process — before Python saw anything
+  to catch. It happened starting a new copy seconds after the old one was
+  killed, with the dying instance still holding the client. The client is now
+  tried in a child process first: a child that dies takes nothing with it, and
+  the bridge carries on without MIDI and says so.
+- **A console switched off wrote three identical log lines a second**, because
+  selection is polled three times a second. The same complaint is now made
+  once a minute, with a count of how often it happened — a log that rotates
+  away the history it was kept for is worse than no log.
+
 ## [0.1.6] — 2026-09-24
 
 Two faults that only a Windows machine with a console attached could show.
