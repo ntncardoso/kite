@@ -5,6 +5,26 @@ follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.6] — 2026-09-24
+
+Two faults that only a Windows machine with a console attached could show.
+
+### Fixed
+- **The app hung on Windows as soon as a console was connected.** The window
+  toolkit builds its JavaScript bridge by walking the object it is handed, and
+  walks into whatever that object holds, with no depth limit: handed the whole
+  application it went through the live device clients, their threads and
+  sockets, and the tray's images. On Windows the window waits for that walk,
+  and with a console connected it never finished. The page now gets a small
+  object holding only the methods it may call.
+- The remote-control endpoint listened on IPv6 only on Windows, so a rack host
+  arriving over IPv4 was refused. One socket now serves both stacks.
+
+### Verified
+- A real console, a Windows build: four selections on the desk produced four
+  correct rack commands, in order. The console half of this app had never run
+  on Windows before.
+
 ## [0.1.5] — 2026-09-24
 
 ### Fixed

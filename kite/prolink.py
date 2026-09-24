@@ -267,6 +267,15 @@ class ProLinkConsole:
     def _accept_loop(self):
         srv = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
         srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        # One socket for both stacks. macOS and Linux hand out a dual-stack
+        # socket by default; Windows does not, so a rack host arriving over
+        # IPv4 was refused outright there while the same build worked on a Mac
+        # (found 2026-09-24). Discovery answers over IPv6, but nothing promises
+        # the session that follows will.
+        try:
+            srv.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 0)
+        except OSError:
+            pass                      # a stack that will not share: bind anyway
         self._srv_sock = srv
         try:
             srv.bind(("::", self.tcp_port))

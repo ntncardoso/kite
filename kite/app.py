@@ -20,6 +20,7 @@ import webbrowser
 from pathlib import Path
 
 from . import APP_NAME, __version__, diagnostics, paths, runtime, userkeys
+from .jsapi import JsApi
 from .midi_link import CHANNEL as MIDI_CHANNEL
 from .midi_link import MidiLink
 from .prolink import ProLinkConsole
@@ -1106,7 +1107,7 @@ class App:
         # the room.
         self.window = webview.create_window(
             f"{APP_NAME} {__version__}", str(PAGE),
-            js_api=self, width=1000, height=620, min_size=(1000, 620),
+            js_api=JsApi(self), width=1000, height=620, min_size=(1000, 620),
         )
         self.tray = Tray(lines=self.status_lines,
                          follow=lambda: self.cfg.get("follow", True),

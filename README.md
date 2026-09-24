@@ -47,7 +47,7 @@ equipment it has been run on.
 | Behringer WING Compact | yes, live | Strip selection, names, all 16 USER buttons |
 | Waves SuperRack Performer 15.15.12.13 | yes, live | Rack display, inventory, health, USER KEYS over MIDI |
 | macOS 15 (Apple silicon) | yes, live | The bundle in Releases |
-| Windows 11 (x64) | **partly** | The rack host side is verified live from Windows: discovered, connected, inventory read, racks opened on command, health received, and reconnected on its own. The **console side has never been tried** — no WING has ever answered a Windows build. |
+| Windows 11 (x64) | **most of it** | Console selection verified live from Windows: four selections on a real WING produced four correct rack commands. The rack host side too: discovered, connected, inventory read, racks opened on command, health received, and reconnected on its own. What is still untried there: the console's USER buttons, and MIDI to the rack host, which needs a loopMIDI port. |
 
 That live test ran over IPv6 only: bridged onto Wi-Fi the virtual machine
 never got an IPv4 address, and everything worked anyway — the bridge does not
